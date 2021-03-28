@@ -34,9 +34,6 @@ import jecsdl;
 
 version = AutoScroll;
 
-version = new0;
-
-version(new0) {
 /// Letter Manager
 class LetterManager { //#shoudn't it be struct
 private:
@@ -46,6 +43,8 @@ private:
 	SDL_Texture* _stampArea;
 	/// Draw to screen
 	//Sprite _letSpriteBlock;
+	string[] _history;
+	size_t _hpos;
 
 	//SDL_Texture*[] m_charSets;
 
@@ -64,12 +63,47 @@ private:
 	bool _textSelected;
 	ubyte _currentgGfxIndex;
 public:
-	/// Text type
-	enum TextType {block, line}
+	enum TextType {block, line} /// Text type
 	TextType m_textType; /// Method text type
 	SDL_Texture* getTextureLetter(char l) {
-		assert(l in m_bmpLetters, "Character not found.");
-		return m_bmpLetters[l];
+		if (l in m_bmpLetters)
+			return m_bmpLetters[l];
+		else
+			return m_bmpLetters['?'];
+	}
+
+	void addHistory() {
+		_history ~= getText();
+		// _hpos += 1;
+		_hpos = _history.length;
+	}
+
+	void undoHistory() {
+		// addHistory();
+		if (_history.length == 0)
+			return;
+		_hpos -= 1;
+		if (_hpos == -1) {
+			_hpos = 0;
+			return;
+		}
+		setText(_history[_hpos]);
+		g_doLetUpdate = true;
+		// debug mixin(tce("/* undo: */ _hpos"));
+	}
+
+	void redoHistory() {
+		// addHistory();
+		if (_history.length == 0 || _hpos == _history.length)
+			return;
+		_hpos += 1;
+		if (_hpos == _history.length) {
+			_hpos = _history.length;
+			return;
+		}
+		setText(_history[_hpos]);
+		g_doLetUpdate = true;
+		// debug mixin(tce("/* redo: */ _hpos"));
 	}
 
 	SDL_Texture* stampArea() { return _stampArea; }
@@ -85,7 +119,7 @@ public:
 	}
 
 	/// get/set letters (Letter[])
-	ref auto letters() { return  m_letters; }
+	ref auto letters() { return m_letters; }
 	//@property ref auto area() { return m_area; } /// get/set bounds
 	
 	/// get/set square(x, y, w, h) (text box)
@@ -163,7 +197,7 @@ public:
 		width = lwidth;
 		height = lheight;
 		foreach(name; fileNames) {
-			m_bmpLettersMulti ~= getLetters(name, null, width + 1);
+			m_bmpLettersMulti ~= getLetters(name, null, width);
 		}
 
 		//_stampArea = SDL_CreateRGBSurface(0, asquare.width, asquare.height, 32, 0,0,0,0xFF);
@@ -173,7 +207,7 @@ public:
 			asquare.w, asquare.h);
 		SDL_SetRenderTarget(gRenderer, null); //#seems to be redundant - maybe good practice
 		import std.string : split;
-		mixin(trace("asquare.w asquare.h".split));
+		mixin(tce("asquare.w asquare.h".split));
 		/+
 		_cursorGfx = new RectangleShape;
 		with(_cursorGfx) {
@@ -225,7 +259,7 @@ public:
 				SDL_Surface* surf = SDL_CreateRGBSurfaceWithFormat(0, width, height - 1, 32, SDL_PIXELFORMAT_RGBA32);
 				scope(exit)
 					SDL_FreeSurface(surf);
-				SDL_Rect rsrc = {1 + (i - 33) * step, 1, width, height - 1};
+				SDL_Rect rsrc = {(i - 32) * step, 1, width, height - 1};
 				SDL_BlitSurface(source, &rsrc, surf, null);
 				tletters[i] = SDL_CreateTextureFromSurface(gRenderer, surf);
 			}
@@ -280,6 +314,7 @@ public:
 	}
 
 	/// apply text from string - also places text
+	// void setText(T...)(T args, bool addHistory = true) { //( in string stringLetters ) {
 	void setText(T...)(T args) { //( in string stringLetters ) {
 		import std.typecons: tuple;
 		import std.conv: text;
@@ -291,6 +326,7 @@ public:
 			letters[index] = Lettera(this,l, currentGfxIndex);
 		pos = cast(int)letters.length - 1;
 		placeLetters();
+		// addHistory();
 	}
 
 	/// Get converted text (string format)
@@ -428,7 +464,7 @@ public:
 	/// Main function for recieving key presses
 	char doInput(ref bool enterPressed) {
 		char c;
-		auto st = jx.getKeyDString;
+		auto st = jx.getKeyString;
 		g_doLetUpdate = false;
 		if (! jx.keyControl && ! jx.keyAlt && ! jx.keySystem && st.length == 1) {
 			c = cast(char)st[0];
@@ -445,7 +481,13 @@ public:
 		}
 
 		void directionalMostly() {
-			if (jx.keySystem) {
+			if (jx.keyControl) {
+				if (g_keys[SDL_SCANCODE_Z].keyTrigger && ! jx.keyShift) {
+					// gh;
+					undoHistory;
+					g_doLetUpdate = true;
+				}
+
 				if (g_keys[SDL_SCANCODE_A].keyTrigger) {
 					import std.algorithm: each;
 
@@ -532,7 +574,7 @@ public:
 					g_doLetUpdate = true;
 					ifUnselect;
 				}
-			} // system key
+			} // ctrl key
 				
 			if (jx.keyAlt) {
 				if (g_keys[SDL_SCANCODE_LEFT].keyInput) {
@@ -609,8 +651,15 @@ public:
 					ifUnselect;
 				} // key down
 			} // if not control pressed
-			
+		} // directionalMostly()
+
+		if (jx.keyControl && jx.keyShift) {
+			if (g_keys[SDL_SCANCODE_Z].keyTrigger) {
+				redoHistory;
+				g_doLetUpdate = true;
+			}
 		}
+
 		directionalMostly();
 /+
 		if (jx.keySystem && ! jx.keyControl && ! jx.keyAlt) {
@@ -646,6 +695,7 @@ public:
 		}
 		
 		if (g_keys[SDL_SCANCODE_RETURN].keyInput) {
+			addHistory();
 			enterPressed = true;
 			final switch ( m_textType ) {
 				case TextType.block:
@@ -662,7 +712,7 @@ public:
 			g_doLetUpdate = true;
 		}
 		
-		if (! jx.keySystem && g_keys[SDL_SCANCODE_BACKSPACE].keyInput && pos > -1
+		if (! jx.keyControl && g_keys[SDL_SCANCODE_BACKSPACE].keyInput && pos > -1
 			&& letters[ pos ].lock == false) {
 			if (_textSelected) {
 				int i;
@@ -774,10 +824,13 @@ public:
 		// Render the actual render target texture to the default render target
 		import std.string : split;
 		//mixin(trace("m_square.x m_square.y m_square.w m_square.h".split));
+		
 		SDL_RenderCopy(gRenderer, stampArea, null, &m_square);
+		// auto centre = SDL_Point(0,0);
+		// SDL_RendererFlip flip;
+		//SDL_RenderCopyEx(gRenderer, stampArea, null, &m_square, 0, &centre, flip);
 
 		//SDL_Rect r = {25,50, 32,32};
 		//SDL_RenderCopy(gRenderer, getTextureLetter('J'), null, &r);
 	}
 }
-} // version new0

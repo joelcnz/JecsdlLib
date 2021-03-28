@@ -74,7 +74,7 @@ public:
         //_rectOutLineShp.mColour = SDL_Color(255,255,255, 0xFF);
         //_font = TTF_OpenFont(buildPath("Fonts", "DejaVuSans.ttf").toStringz, 15);
         //assert(_font, "Font load fail");
-        _listTxt = JText( "", SDL_Rect(0,0,0,0), SDL_Color(255,255,0,0xFF), 15,
+        _listTxt = JText( "", SDL_Point(), SDL_Color(255,255,0,0xFF), 15,
             buildPath("Fonts", "DejaVuSans.ttf"));
 
         _list ~= nameid; //#dummy I think

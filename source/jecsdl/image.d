@@ -1,47 +1,104 @@
+//#surface stub
 module jecsdl.image;
 
 import jecsdl.base;
 
+/+
 struct Map {
     ubyte r,g,b, a;
 }
++/
+/+
+auto getSlice(SDL_Surface* source, Point pos, int w, int h) {
+    assert(source, "source is null");
+    SDL_Surface* surf = SDL_CreateRGBSurfaceWithFormat(0, w,h, 32, SDL_PIXELFORMAT_RGBA32);
+    assert(surf, "surf note created");
+    scope(exit)
+        SDL_FreeSurface(surf);
+    SDL_Rect rsrc = {pos.Xi, pos.Yi, w,h};
+    SDL_BlitSurface(source, &rsrc, surf, null);
+
+    return SDL_CreateTextureFromSurface(gRenderer, surf);
+}
++/
 
 struct Image {
     SDL_Texture* mImg;
     SDL_Rect mRect;
     Point mPos;
+    double angle = 0.0;
+    SDL_RendererFlip flip;
+    SDL_Point centre;
+    bool mStamp;
     bool mReleaseMemory;
+
+	bool isPic() { return mImg !is null; }
 
     auto pos() { return mPos; }
     void pos(Point pos0) { mPos = pos0; mRect.x = cast(int)pos0.X; mRect.y = cast(int)pos0.Y; }
 
-    this(SDL_Texture* texture, SDL_Rect rect) {
+/+
+    this(SDL_Surface* source) // , SDL_Rect rect) {
+        this(getTextureFromSuface(source, rect));
+    }
+    +/
+
+    void setup(int w, int h) {
+        if (mReleaseMemory)
+            close;
+        mImg = SDL_CreateTexture(gRenderer,SDL_PIXELFORMAT_RGBA8888,SDL_TEXTUREACCESS_TARGET,w,h);
+        mRect = SDL_Rect(0,0,w,h);
+        mReleaseMemory = true;
+        mStamp = true;
+        // mRect = SDL_Rect(0,0,w,h);
+        // mPos = Point(0,0);
+        // centre = SDL_Point(w/2, h/2);
+    }
+
+    //#surface stub
+    void setup(SDL_Surface* surf) {
+
+    }
+
+    void setup(SDL_Texture* texture, SDL_Rect rect) {
         mImg = texture;
+        //SDL_RenderGetClipRect(texture,null,null,&mRect);
         mRect = rect;
         mPos = Point(rect.x, rect.y);
+        centre = SDL_Point(rect.w / 2, rect.h / 2);
         mReleaseMemory = false;
     }
 
-    this(in string filename) {
-        mImg = loadTexture(filename, mRect);
+    void setup(in string filename) {
+        mImg = loadTexture(filename, &mRect); //, mRect);
+        //SDL_RenderGetClipRect(texture,null,null,&mRect.w,&mRect.h);
         pos = Point(mRect.x, mRect.y);
-        assert(mImg, "Image not load!");
+        centre = SDL_Point(mRect.w / 2, mRect.h / 2);
+        assert(mImg, filename ~ " - Image not load!");
         writeln("mImg created");
         mReleaseMemory = true;
+        mixin(tce("filename pos centre angle flip mRect".split));
     }
 
     void close() {
         if (mReleaseMemory) {
-            SDL_DestroyTexture(mImg);
             mReleaseMemory = false;
-            writeln("mImg destoried");
+            SDL_DestroyTexture(mImg);
+            writeln("mImg destroyed");
         } else {
-            writeln("Memory already released");
+            debug(10)
+                writeln("Memory already released");
         }
     }
 
     void draw() {
-        SDL_RenderCopy(gRenderer, mImg, null, &mRect);
+        //SDL_RenderCopy(gRenderer, mImg, null, &mRect);
+        if (mRect.w == 0 || mRect.h == 0)
+            SDL_RenderCopyEx(gRenderer, mImg, null, null, angle, &centre, flip);
+        else if (mStamp)
+            SDL_RenderCopy(gRenderer, mImg, null, &mRect);
+        else
+            SDL_RenderCopyEx(gRenderer, mImg, null, &mRect, angle, &centre, flip);
     }
 }
 
@@ -61,12 +118,13 @@ SDL_Surface* loadSuface(in string path) {
     }
     else
     {
+        
         return loadedSurface;
     }
     return null;
 }
 
-SDL_Texture* loadTexture( in string path, out SDL_Rect r )
+SDL_Texture* loadTexture( in string path, SDL_Rect* r)
 {
     //The final texture
     SDL_Texture* newTexture;
@@ -81,6 +139,7 @@ SDL_Texture* loadTexture( in string path, out SDL_Rect r )
         r.h = loadedSurface.h;
         //Create texture from surface pixels
         newTexture = SDL_CreateTextureFromSurface( gRenderer, loadedSurface );
+        // mixin(tce("SDL_RenderTargetSupported(gRenderer)"));
         if( newTexture is null )
         {
             writef( "Unable to create texture from %s! SDL Error: %s\n", path, SDL_GetError().fromStringz );
@@ -122,9 +181,8 @@ auto mapImageFile(in string fileName) {
     int w,h;
     w = suf.w;
     h = suf.h;
-    auto gMap = new ubyte[][][](4,w,h);
-    auto map = new Map[][](h,w);
-    int c;
+    auto map = new SDL_Color[][](h,w);
+    size_t c;
     import std.range : iota;
     auto data = cast(ubyte*)suf.pixels;
     immutable bytesPerPixel = suf.format.BytesPerPixel;
@@ -151,4 +209,13 @@ auto mapImageFile(in string fileName) {
     }
 
     return map;
+}
+
+SDL_Texture* getTextureFromSuface(SDL_Surface* source, SDL_Rect rect)  { //in int x, in int y, in int width, in int height) {
+    SDL_Surface* surf = SDL_CreateRGBSurfaceWithFormat(0, rect.w, rect.h, 32, SDL_PIXELFORMAT_RGBA32);
+    scope(exit)
+        SDL_FreeSurface(surf);
+    SDL_BlitSurface(source, &rect, surf, null);
+
+    return SDL_CreateTextureFromSurface(gRenderer, surf);
 }

@@ -18,6 +18,10 @@ bool jtextMakeFont(string fontName, int size) {
     return gmFont !is null;
 }
 
+void jtextCloseFont() {
+    TTF_CloseFont(gmFont);
+}
+
 struct JText {
     string mText;
     SDL_Texture* mTex;
@@ -31,9 +35,15 @@ struct JText {
     void pos(Point pos0) { mPos = pos0; mRect.x = pos0.Xi; mRect.y = pos0.Yi; } //#not sure about this (p += Point(10,10); not work)
     auto pos() { return mPos; }
 
+    Pointi getSize() {
+        int w,h;
+        TTF_SizeText(mFont, mText.toStringz, &w, &h);
+        return Pointi(w,h);
+    }
+
     //this(TTF_Font* font) { mFont = font; }
 
-    this(string message, SDL_Rect r, SDL_Color col, int fontSize, string fileName) {
+    this(string message, SDL_Point pos, SDL_Color col, int fontSize, string fileName) {
     //void setup(string message, SDL_Rect r, SDL_Color col, int fontSize, string fileName) {
         //assert(mFont, "font is null");
         import std.string : toStringz;
@@ -42,12 +52,13 @@ struct JText {
 	version(Trace) {
 		17.gh;
 	}
-        setString(message, col);
+        setString(message, col); // sets mSur
 	version(Trace) {
 		18.gh;
 	}
-        mRect = SDL_Rect(r.x, r.y, mSur.w, mSur.h);
-        mPos = Point(r.x, r.y);
+        mRect = SDL_Rect(pos.x, pos.y, mSur.w, mSur.h);
+        mPos = Point(pos.x, pos.y);
+
     }
 
     void setString(string message) {
@@ -108,6 +119,6 @@ struct JText {
     }
     
     string toString() const {
-        return text(`text: "`, mText, `" pos: (`, mRect.x, ",", mRect.y, ")");
+        return text(`text: "`, mText, `" pos: (`, mRect.x, ",", mRect.y, "), dim: (", mRect.w, ",", mRect.h,")");
     }
 }

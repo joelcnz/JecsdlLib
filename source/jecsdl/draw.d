@@ -3,6 +3,8 @@ module jecsdl.draw;
 
 import jecsdl.base;
 
+// enum BoxStyle {solid, outLine}
+
 struct JRectangle {
     SDL_Rect mRect;
     alias mRect this; // x y w h (void main() { JRectangle r; r.x = 10; r.y = 20; r.w = 32; r.h = 32; r.mColour.b = 255; } )
@@ -35,6 +37,11 @@ struct JRectangle {
         mRect.y = pos.Yi;
     }
 
+    void size(Point size) {
+        mRect.w = size.Xi;
+        mRect.h = size.Yi;
+    }
+
     void draw() {
         //foreach(dy; 0 .. mRect.h)
         //    foreach(dx; 0 .. mRect.w)
@@ -44,13 +51,13 @@ struct JRectangle {
         SDL_SetRenderDrawBlendMode(gRenderer, SDL_BLENDMODE_BLEND);
         scope(exit)
             SDL_SetRenderDrawBlendMode(gRenderer, SDL_BLENDMODE_NONE);
+        SDL_SetRenderDrawColor(gRenderer, mColour.r, mColour.g, mColour.b, mColour.a);
         final switch(_boxStyle) with(BoxStyle) {
             case solid:
-                SDL_SetRenderDrawColor(gRenderer, mColour.r, mColour.g, mColour.b, mColour.a);
                 SDL_RenderFillRect(gRenderer, &mRect);
             break;
             case outLine:
-                SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+//                SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
                 SDL_RenderDrawRect(gRenderer, &mRect);
             break;
         }

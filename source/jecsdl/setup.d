@@ -1,3 +1,4 @@
+//#mix close audio - new
 module jecsdl.setup;
 
 //#sound
@@ -84,6 +85,7 @@ bool fontSetup() {
 	return true;
 }
 
+//jecsdlsetup("SDL Joel program", 640,480, SDL_WINDOW_SHOWN);
 int jecsdlsetup(string title = "SDL Joel program",
 	int screenWidth = 640, int screenHeight = 480,
 	SDL_WindowFlags flags = SDL_WINDOW_SHOWN) {
@@ -237,4 +239,5 @@ void close()
 	IMG_Quit();
 	TTF_Quit();
 	SDL_AudioQuit();
+	// Mix_CloseAudio(); //#mix close audio - new
 }

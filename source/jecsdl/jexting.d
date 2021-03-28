@@ -55,7 +55,7 @@ public:
 	}
 +/
 
-	void chunkCate(dstring str, int chunkSize) {
+	void chunkCate(string str, int chunkSize) {
 		_txts.length = 0;
 			
 		auto txts = wrap(str, chunkSize, null, null, 4).split('\n');
@@ -77,7 +77,7 @@ public:
 		version(chunk) {
 			int i;
 			foreach(chunk; chunks(str, chunkSize)) {
-				_txts ~= new Text(chunk.to!dstring, g_font, _fontSize);
+				_txts ~= new Text(chunk, g_font, _fontSize);
 				_textHeight = _txts[0].getLocalBounds.height.to!int; // repeats with no effect
 				_txts[$ - 1].position = _txts[$ - 1].position + Point(0, i * _textHeight);
 				i++;
@@ -109,7 +109,7 @@ public:
 	
 	void draw() {
 		if (edge) {
-			Text edgeTxt = new Text(""d, g_font, _fontSize);
+			Text edgeTxt = new Text("", g_font, _fontSize);
 			edgeTxt.setColor = Color(0, 0, 0);
 			foreach(etxt; _txts) {
 				edgeTxt.setString = etxt.text;

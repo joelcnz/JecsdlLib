@@ -9,7 +9,8 @@ public import jecsdl.base,
 	jecsdl.letter,
 	jecsdl.lettermanager,
 	jecsdl.guiconfirm,
-	jecsdl.image;
+	jecsdl.image,
+	jecsdl.sdl_gfx_primitives;
 /+
 public import 
 	jec.base,

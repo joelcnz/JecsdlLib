@@ -14,18 +14,31 @@ int openAudio() {
 }
 
 struct JSound {
-	static int mIdPos = 0; //# from 1 to 0
-	int mId;
+	// static mLastid = 1;
+	string name;
 	Mix_Chunk* mSnd;
+	bool mActive = true;
+	bool mSingle = false;
+
+	bool active() { return mActive; }
+	void active(bool a) { mActive = a; }
+	void single(bool single) { mSingle = single; }
 
 	Mix_Chunk* refSnd() {
 		return mSnd;
 	}
 
 	this(in string file) {
+		name = file;
 		assert(loadSnd(file), "[" ~ file ~ "] Sound file not load!");
-		mId = mIdPos;
-		mIdPos += 1;
+		// mSnd.allocated = mLastid;
+		// mLastid += 1;
+		// mixin(tce("mLastid"));
+	}
+
+	~this() {
+		// writeln("Freeing sound");
+		// close();
 	}
 	
 	bool loadSnd(in string file) {
@@ -42,17 +55,21 @@ struct JSound {
 	}
 
 	void play() {
-		Mix_PlayChannel(mId, mSnd, 0);
+		// Mix_PlayChannel(mSnd.allocated, mSnd, 0);
+		Mix_PlayChannel((mSingle ? mSnd.allocated : -1), mSnd, 0);
+//		mixin(tce("mSnd.allocated"));
 	}
 
 
 	bool playing() {
-		return Mix_Playing(mId) > 0;
+		return Mix_Playing(mSnd.allocated) > 0;
 	}
 
 	void close() {
-		if (mSnd)
+		if (mSnd) {
 			Mix_FreeChunk(mSnd);
+			writeln("Sound file released: ", name);
+		}
 	}
 }
 

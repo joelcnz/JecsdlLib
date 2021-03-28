@@ -21,11 +21,11 @@ import jecsdl.base, jecsdl.text;
 
 class InputJex {
 private:
-	dstring _str;
+	string _str;
 	bool _keyShift, _control, _alt, _keySystem;
 	JText[] _history;
 	int _inputHistoryPos;
-	dstring[] _inputHistory;
+	string[] _inputHistory;
 	string _button;
 	JText _txt,
 		 _header;
@@ -98,7 +98,7 @@ public:
 		void enterPressed(bool ep) { _enterPressed = ep; }
 	
 		auto textStr() { return _str; }
-		void textStr(dstring str) { _str = str; _txt.setString = _str.to!string; }
+		void textStr(string str) { _str = str; _txt.setString = _str; }
 		
 		void clearHistory() { _history.length = 0; }
 
@@ -133,9 +133,9 @@ public:
 	void placeTextLine(in uint index, in int x, int y, in string str) {
 		assert(index < _history.length, "Error: index out of bounds");
 
-		//_history[index] = new Text(str.to!dstring, g_font, _txt.getCharacterSize);
+		//_history[index] = new Text(str, g_font, _txt.getCharacterSize);
 		//assert(jtextMakeFont("DejaVuSans.ttf", fontSize), "make font fail");
-		_history[index] = JText(str, SDL_Rect(), _colour, fontSize, "DejaVuSans.ttf");
+		_history[index] = JText(str, SDL_Point(),_colour, fontSize, "DejaVuSans.ttf");
 		with(_history[index])
 			pos = Point(x, y);
 			//setColor = _colour;
@@ -154,15 +154,15 @@ public:
 		//assert(jtextMakeFont("DejaVuSans.ttf", fontSize), "make font fail");
 		//if (_font is null)
 		//	_font = TTF_OpenFont(header.toStringz, fontSize);
-		_header = JText(header, SDL_Rect(pos.Xi,pos.Yi), _colour, fontSize, buildPath("fonts", "DejaVuSans.ttf"));
-		//_header = new Text(header.to!dstring, g_font, fontSize);
+		_header = JText(header, SDL_Point(pos.Xi,pos.Yi), _colour, fontSize, buildPath("fonts", "DejaVuSans.ttf"));
+		//_header = new Text(header, g_font, fontSize);
 		//_header.position = pos;
 		_inputType = inputType;
 		
-		//_txt = new Text(""d, g_font, fontSize);
-		//_str = "<edit here>"d;
+		//_txt = new Text("", g_font, fontSize);
+		//_str = "<edit here>";
 		_str = "";
-		_txt = JText(_str.to!string, SDL_Rect(pos.Xi + _header.mRect.w, pos.Yi), _colour, fontSize, buildPath("fonts", "DejaVuSans.ttf"));
+		_txt = JText(_str.to!string, SDL_Point(pos.Xi + _header.mRect.w, pos.Yi), _colour, fontSize, buildPath("fonts", "DejaVuSans.ttf"));
 		_txt.pos = Point(pos.X + _header.mRect.w.to!float, pos.Y);
 
 		showHistory = true;
@@ -177,8 +177,8 @@ public:
 		_cursorCol = SDL_Color(0xFF,0xFF,0xFF,0xFF);
 		
 		//_x = _txt.position.x;
-		//_measure = new Text(""d, g_font, fontSize);
-		_measure = JText(_str.to!string, SDL_Rect(pos.Xi, pos.Yi), _colour, fontSize, buildPath("fonts", "DejaVuSans.ttf"));
+		//_measure = new Text(", g_font, fontSize);
+		_measure = JText(_str.to!string, SDL_Point(pos.Xi, pos.Yi), _colour, fontSize, buildPath("fonts", "DejaVuSans.ttf"));
 		_measure.pos = pos;
 		//updateMeasure;
 		//debug mixin(trace("pos"));
@@ -193,7 +193,7 @@ public:
 	}
 
 	void insert(C)(C c)
-		if (is(C == dstring))
+		if (is(C == string))
 	{
 		debug(5) mixin(trace("c", "_x", "_str"));
 		if (_x > _str.length)
@@ -207,9 +207,10 @@ public:
 		}
 	}
 
-	dstring getKeyDString() {
+	string getKeyString() {
 		_keyShift = _control = _alt = _keySystem = false;
 
+		SDL_PumpEvents();
 		//if (Keyboard.isKeyPressed(Keyboard.Key.LShift) ||
 		//	Keyboard.isKeyPressed(Keyboard.Key.RShift))
 		if (g_keystate[SDL_SCANCODE_LSHIFT] ||
@@ -241,26 +242,26 @@ public:
 		foreach(key; SDL_SCANCODE_A .. SDL_SCANCODE_Z + 1) {
 			if (g_keys[cast(ubyte)key].keyInput) {
 				if (_keyShift == true)
-					return uppercase[i].to!dstring;
+					return uppercase[i].to!string;
 				else
-					return lowercase[i].to!dstring;
+					return lowercase[i].to!string;
 			}
 			i += 1;
 		} // foreach
 
 		if (g_keys[SDL_SCANCODE_Z + 10].keyInput) {
 			if (_keyShift)
-				return ")"d;
+				return ")";
 			else
-				return "0"d;
+				return "0";
 		}
 		i = 0;
 		foreach(key; SDL_SCANCODE_Z + 1 .. SDL_SCANCODE_Z + 9 + 1) {
 			if (g_keys[key].keyInput) {
 				if (_keyShift)
-					return "!@#$%^&*("d[i].to!dstring;
+					return "!@#$%^&*("[i].to!string;
 				else
-					return (i + 1).to!dstring;
+					return (i + 1).to!string;
 			}
 			i++;
 		} // foreach
@@ -270,9 +271,9 @@ public:
 			if (! _control && ! _alt) {
 				if (g_keys[SDL_SCANCODE_SPACE + 1 + i].keyInput) {
 					if (_keyShift)
-						return "_+{}|"d[i].to!dstring;
+						return "_+{}|"[i].to!string;
 					else
-						return "-=[]\\"d[i].to!dstring;
+						return "-=[]\\"[i].to!string;
 				}
 			}
 			i++;
@@ -280,9 +281,9 @@ public:
 
 		if (g_keys[SDL_SCANCODE_SPACE + 7].keyInput) {
 			if (_keyShift)
-				return ":"d[0].to!dstring;
+				return ":";
 			else
-				return ";"d[0].to!dstring;
+				return ";";
 		}
 
 		i = 0;
@@ -290,9 +291,9 @@ public:
 			if (! _control && ! _alt) {
 				if (g_keys[SDL_SCANCODE_SPACE + 9 + i].keyInput) {
 					if (_keyShift)
-						return "~<>?"d[i].to!dstring;
+						return "~<>?"[i].to!string;
 					else
-						return "`,./"d[i].to!dstring;
+						return "`,./"[i].to!string;
 				}
 			}
 			i++;
@@ -300,31 +301,31 @@ public:
 
 		if (g_keys[SDL_SCANCODE_APOSTROPHE].keyInput) {
 			if (_keyShift)
-				return `"`d[0].to!dstring;
+				return `"`;
 			else
-				return "'"d[0].to!dstring;
+				return "'";
 		}
 
 		if (g_keys[SDL_SCANCODE_SPACE].keyInput)
-			return " "d;
-		return ""d;
-	} // get key dstring
+			return " ";
+		return "";
+	} // get key string
 
 	void clearInput() {
-		_str = ""d;
+		_str = "";
 		_x = 0;
 		updateMeasure;
 		_txt.setString = _str.to!string;
 	}
 
 	void process() {
-		auto dkey = getKeyDString;
+		auto dkey = getKeyString;
 
 		if (dkey.length)
 			_lastKeyPressed = dkey[0];
-		if (dkey != ""d)
+		if (dkey != "")
 			insert(dkey),
-			_txt.setString = _str.to!string,
+			_txt.setString = _str,
 			updateMeasure;
 
 		if (g_keys[SDL_SCANCODE_BACKSPACE].keyInput && _str.length > 0) {
@@ -440,9 +441,9 @@ public:
 		if (! _outPutOnlyToTerminal) {
 			moveHistoryUp;
 		
-			//_history ~= new Text(str.to!dstring, g_font, _txt.getCharacterSize);
+			//_history ~= new Text(str, g_font, _txt.getCharacterSize);
 			//assert(jtextMakeFont("DejaVuSans.ttf", fontSize), "font make fail");
-			_history ~= JText(str.to!string, SDL_Rect(), _colour, fontSize, "DejaVuSans.ttf"); //_txt.getCharacterSize);
+			_history ~= JText(str.to!string, SDL_Point(), _colour, fontSize, "DejaVuSans.ttf"); //_txt.getCharacterSize);
 			_history[$ - 1].pos = Point(_header.mRect.x, _txt.mRect.y - _historyLineHeight);
 			//_history[$ - 1].setColor = _colour;
 			
@@ -485,8 +486,8 @@ public:
 			SDL_SetRenderDrawColor(gRenderer,
 					historyColour.r,historyColour.g,historyColour.b,historyColour.a);
 			_history
-			.filter!(a => a.mRect.y >= 0)
-			.each!drawLine;
+				.filter!(a => a.mRect.y >= 0)
+				.each!drawLine;
 		}
 		if (g_terminal) {
 			if (_edge) {

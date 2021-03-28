@@ -46,7 +46,7 @@ struct GuiFile {
                         //update(i, ", is out of bounds 1-", txts.length - 1);
                         break for1;
                     }
-                    input.textStr = txts[i][txts[i].indexOf(" ") + 1 .. $].to!dstring;
+                    input.textStr = txts[i][txts[i].indexOf(" ") + 1 .. $];
                 }
                 import std.path : stripExtension, baseName;
                 if (nameid == "save" || nameid == "load" || nameid == "rename" || nameid == "delete") {

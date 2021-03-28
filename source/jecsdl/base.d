@@ -1,3 +1,4 @@
+//#not used
 //#needs width and height
 //#new
 //# need to add like sleep(50.dur!msecs);, not that it stops the tight loop!
@@ -10,20 +11,27 @@ public {
 	import std.stdio;
 	import std.string; // for toStringz
 
-	import bindbc.sdl;
-	import bindbc.sdl.image;            // SDL_image binding
-	import bindbc.sdl.mixer;            // SDL_mixer binding
-	import bindbc.sdl.ttf;              // SDL_ttf binding
+	import bindbc.sdl,
+		bindbc.sdl.image,            // SDL_image binding
+		bindbc.sdl.mixer,            // SDL_mixer binding
+		bindbc.sdl.ttf,              // SDL_ttf binding
+		jecsdl.sdl_gfx_primitives;   // see file for author
 
 	import std.math, std.conv, std.path;
 
-	import jecsdl.setup, jecsdl.text, jecsdl.input, jecsdl.sound,
-		jecsdl.gui, jecsdl.guifile, jecsdl.guiconfirm, jecsdl.image;
+	import jecsdl.setup,
+		jecsdl.text,
+		jecsdl.input,
+		jecsdl.sound,
+		jecsdl.gui,
+		jecsdl.guifile,
+		jecsdl.guiconfirm,
+		jecsdl.image;
 
 	import jmisc;
 }
 
-import std.datetime : Duration;
+import std.datetime : Duration; //#not used
 import std.datetime.stopwatch: StopWatch;
 
 //public import jec.base, jec.input, jec.jexting, jec.setup, jec.sound, jmisc, jec.gui, jec.guifile, jec.guiconfirm;
@@ -327,6 +335,9 @@ ubyte chr( int c ) {
 //jexa<<
 
 debug = TDD; //#hack
++/
+
+alias Color = SDL_Color;
 
 /// Quick colour
 struct Colour {
@@ -626,6 +637,7 @@ struct Colour {
 	enum yellowgreen = Color(154, 205, 50);
 }
 
+/+
 enum Blue = 0;
 enum Green = 1;
 
