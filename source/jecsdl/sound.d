@@ -1,5 +1,4 @@
-//# from 1 to 0
-//#work
+//#errors with close(); turned on
 module jecsdl.sound;
 
 import jecsdl.base;
@@ -28,15 +27,27 @@ struct JSound {
 		return mSnd;
 	}
 
-	this(in string file) {
+	this(in string file, bool single = false) {
 		name = file;
 		assert(loadSnd(file), "[" ~ file ~ "] Sound file not load!");
+		mSingle = single;
 		// mSnd.allocated = mLastid;
 		// mLastid += 1;
 		// mixin(tce("mLastid"));
 	}
 
 	~this() {
+		/+
+//#errors with close(); turned on
+Sound file released: Sounds/Polly.wav
+Sound file released: Sounds/babyincot.wav
+Sound file released: Sounds/appletree.wav
+jecsdl(3025,0x10d931dc0) malloc: *** error for object 0x7fca8c582000: pointer being freed was not allocated
+jecsdl(3025,0x10d931dc0) malloc: *** set a breakpoint in malloc_error_break to debug
+Program exited with code -6
+
+See Testing/Jecsdl for how I overcame this problem.
+		+/
 		// writeln("Freeing sound");
 		// close();
 	}

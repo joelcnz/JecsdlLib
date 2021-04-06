@@ -188,16 +188,16 @@ public:
 	}
 	
 	/// ctor, setting area
-	this(in string fileName, int lwidth, int lheight, SDL_Rect asquare) {
-		this([fileName], lwidth, lheight, asquare);
+	this(in string fileName, int lwidth, int lheight, SDL_Rect asquare, int gapw = 0, int gaph = 0) {
+		this([fileName], lwidth, lheight, asquare,gapw,gaph);
 	}
  
 	// main ctor
-	this(in string[] fileNames, int lwidth, int lheight, SDL_Rect asquare) {
+	this(in string[] fileNames, int lwidth, int lheight, SDL_Rect asquare, int gapw = 0, int gaph = 0) {
 		width = lwidth;
 		height = lheight;
 		foreach(name; fileNames) {
-			m_bmpLettersMulti ~= getLetters(name, null, width);
+			m_bmpLettersMulti ~= getLetters(name, null, width, gapw,gaph);
 		}
 
 		//_stampArea = SDL_CreateRGBSurface(0, asquare.width, asquare.height, 32, 0,0,0,0xFF);
@@ -246,7 +246,7 @@ public:
 	}
 
 	/// copy letters to bmps
-	SDL_Texture*[char] getLetters(in string spritesFileName, in string order, int step) {
+	SDL_Texture*[char] getLetters(in string spritesFileName, in string order, int step, int gapw = 0, int gaph = 0) {
 		SDL_Texture*[char] tletters;
 		import std.string : toStringz;
 		SDL_Surface* source = IMG_Load(spritesFileName.toStringz);
@@ -256,10 +256,10 @@ public:
 		}
 		if (order is null) {
 			foreach(char i; 32 .. 126 + 1) {
-				SDL_Surface* surf = SDL_CreateRGBSurfaceWithFormat(0, width, height - 1, 32, SDL_PIXELFORMAT_RGBA32);
+				SDL_Surface* surf = SDL_CreateRGBSurfaceWithFormat(0, width, height, 32, SDL_PIXELFORMAT_RGBA32);
 				scope(exit)
 					SDL_FreeSurface(surf);
-				SDL_Rect rsrc = {(i - 32) * step, 1, width, height - 1};
+				SDL_Rect rsrc = {(i - 32) * (step+gapw), gaph, width, height};
 				SDL_BlitSurface(source, &rsrc, surf, null);
 				tletters[i] = SDL_CreateTextureFromSurface(gRenderer, surf);
 			}

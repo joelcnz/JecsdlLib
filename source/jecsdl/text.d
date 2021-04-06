@@ -31,6 +31,7 @@ struct JText {
     Point mSize;
     SDL_Color mCol;
     TTF_Font* mFont;
+    bool mDestroyFont;
 
     void pos(Point pos0) { mPos = pos0; mRect.x = pos0.Xi; mRect.y = pos0.Yi; } //#not sure about this (p += Point(10,10); not work)
     auto pos() { return mPos; }
@@ -58,7 +59,15 @@ struct JText {
 	}
         mRect = SDL_Rect(pos.x, pos.y, mSur.w, mSur.h);
         mPos = Point(pos.x, pos.y);
+        mDestroyFont = true;
+    }
 
+    this(JText dref) {
+        mFont = dref.mFont;
+        setString(dref.mText, dref.mCol); // sets mSur
+        mRect = SDL_Rect(dref.mPos.Xi, dref.mPos.Yi, dref.mSize.Xi, dref.mSize.Yi);
+        mPos = Point(dref.mPos.X,dref.mPos.Y);
+        mDestroyFont = false;
     }
 
     void setString(string message) {

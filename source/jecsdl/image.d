@@ -91,6 +91,11 @@ struct Image {
         }
     }
 
+    void draw(Point p) {
+        pos = p;
+        draw;
+    }
+
     void draw() {
         //SDL_RenderCopy(gRenderer, mImg, null, &mRect);
         if (mRect.w == 0 || mRect.h == 0)
